@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spark • WebXR</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: monospace;
+    }
+
+    #audio-toggle {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 2100;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border: none;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    #audio-toggle:hover,
+    #audio-toggle:focus-visible {
+      background: rgba(0, 0, 0, 0.8);
+      transform: scale(1.05);
+      outline: none;
+    }
+
+    #audio-toggle lucide-icon {
+      width: 24px;
+      height: 24px;
+      display: block;
+      color: #fff;
+      stroke: currentColor;
+    }
+
+    #hud-toggle {
+      position: fixed;
+      top: 72px;
+      left: 16px;
+      z-index: 2100;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border: none;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    #hud-toggle:hover,
+    #hud-toggle:focus-visible {
+      background: rgba(0, 0, 0, 0.8);
+      transform: scale(1.05);
+      outline: none;
+    }
+
+    #hud-toggle lucide-icon {
+      width: 24px;
+      height: 24px;
+      display: block;
+      color: #fff;
+      stroke: currentColor;
+    }
+  </style>
+</head>
+
+<body>
+  <button id="audio-toggle" type="button" aria-label="Play audio"></button>
+  <button id="hud-toggle" type="button" aria-label="Toggle HUD"></button>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.179.0/three.module.js",
+        "@sparkjsdev/spark": "https://sparkjs.dev/releases/spark/experimental/lod/spark.module.min.js"
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+
+</html>
