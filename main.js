@@ -24,14 +24,19 @@ sparkScene.localFrame.position.set(-2, 7, -6.13); // start in the bedroom
 // Initialize VR
 initializeVR(sparkScene);
 
+// controls get reset if initializing VR so set control speed after
+sparkScene.controls.fpsMovement.moveSpeed *= 3.0; 
+
 // Initialize HUD
 initializeHUD();
 
 // Initialize SDF hand tracking
 initializeSDFHands(sparkScene);
 
-// music defaults to off, so turn it on here.
-await turnMusicOn();
+// with VR, we need to wait for a user gesture to start music.  Otherwise, start music immediately.
+if (!sparkScene.xrHands) {
+  await turnMusicOn();
+} 
 
 // Start animation loop
 startAnimationLoop(sparkScene, (sparkSceneIn, time) => {

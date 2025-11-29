@@ -40,7 +40,7 @@
       "rolloffFactor": 10,
       "maxDistance": 3,
       "loop": false,
-      "volume": 0.7
+      "volume": 1.0 
     },
     "triggerRadius": 1
   },

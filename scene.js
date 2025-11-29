@@ -53,6 +53,9 @@ export async function createSparkScene(backgroundURL) {
     sparkScene.camera.updateProjectionMatrix();
     sparkScene.renderer.setSize(window.innerWidth, window.innerHeight);
   }
+
+  // Controls setup
+  sparkScene.controls = new SparkControls({ canvas: sparkScene.renderer.domElement });
   
   return sparkScene;
 }
@@ -73,8 +76,10 @@ export function initializeVR(sparkScene, options = {}) {
     sparkScene.localFrame.add(handMesh);
   }
 
-  // Setup controls
+  // Redo controls to include VR 
   sparkScene.controls = new SparkControls({ canvas: sparkScene.renderer.domElement });
+
+  // Setup controls
   sparkScene.controls.fpsMovement.xr = sparkScene.renderer.xr;
   // reduces resolution. But you can't really tell with splats so this is a free performance boost.
   sparkScene.renderer.xr.setFramebufferScaleFactor(RENDER_CONFIG.xrFramebufferScaleFactor);

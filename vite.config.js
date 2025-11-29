@@ -5,6 +5,9 @@ export default defineConfig({
     port: 3000,
     open: true
   },
+  build: {
+    target: 'es2022' // Support top-level await
+  },
   resolve: {
     alias: {
       'three': 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.179.0/three.module.js',
