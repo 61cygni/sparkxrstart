@@ -12,6 +12,30 @@ let hudElement = null;
 let hudVisible = false;
 const hudData = new HUDData();
 
+// Listeners that get called when HUD is toggled
+const hudToggleListeners = new Set();
+
+// Register a listener to be called when HUD is toggled
+// Callback receives (isVisible: boolean)
+export function onHudToggle(callback) {
+  hudToggleListeners.add(callback);
+}
+
+// Unregister a HUD toggle listener
+export function offHudToggle(callback) {
+  hudToggleListeners.delete(callback);
+}
+
+// Notify all listeners of HUD toggle
+function notifyHudToggleListeners() {
+  hudToggleListeners.forEach(callback => callback(hudVisible));
+}
+
+// Check if HUD is enabled/visible
+export function isHudEnabled() {
+  return hudVisible;
+}
+
 // FPS tracking variables
 const FPS_UPDATE_INTERVAL = 500;
 let lastTime = performance.now();
@@ -115,6 +139,7 @@ export function toggleHUD() {
     hudElement.style.display = hudVisible ? 'block' : 'none';
   }
   syncHUDToggle();
+  notifyHudToggleListeners();
 }
 
 // Get HUD data object for updating values

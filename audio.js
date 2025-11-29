@@ -2,6 +2,31 @@ import { AUDIO_CONIFG } from "./config.js";
 
 // Audio setup
 export let bgAudio = null;
+let audioEnabled = false;
+
+// Listeners that get called when audio is toggled
+const audioToggleListeners = new Set();
+
+// Register a listener to be called when audio is toggled
+// Callback receives (isEnabled: boolean)
+export function onAudioToggle(callback) {
+  audioToggleListeners.add(callback);
+}
+
+// Unregister an audio toggle listener
+export function offAudioToggle(callback) {
+  audioToggleListeners.delete(callback);
+}
+
+// Notify all listeners of audio toggle
+function notifyAudioToggleListeners() {
+  audioToggleListeners.forEach(callback => callback(audioEnabled));
+}
+
+// Get audio enabled state
+export function isAudioEnabled() {
+  return audioEnabled;
+}
 
 // Setup audio toggle button
 function setupAudioToggleButton() {
@@ -16,20 +41,18 @@ function setupAudioToggleButton() {
 
 // Initialize audio with asset resolution
 export async function initializeBackgroundAudio(audioURL) {
-  bgAudio = new Audio(audioURL);
-  bgAudio.loop = true;
-  bgAudio.preload = "auto";
-  bgAudio.volume = AUDIO_CONIFG.defaultVolume;
+    if (audioURL) {
+        bgAudio = new Audio(audioURL);
+        bgAudio.loop = true;
+        bgAudio.preload = "auto";
+        bgAudio.volume = AUDIO_CONIFG.defaultVolume;
+    }
   
   // Setup audio toggle button after audio is initialized
   setupAudioToggleButton();
 }
 
 export async function startBgAudio() {
-  if (!bgAudio) {
-    console.error('Background audio not initialized');
-    return false;
-  }
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (AudioContext) {
@@ -38,7 +61,11 @@ export async function startBgAudio() {
         await audioContext.resume();
       }
     }
-    await bgAudio.play();
+    // Only play background audio if it was initialized
+    if (bgAudio) {
+      await bgAudio.play();
+    }
+    audioEnabled = true;
     return true;
   } catch (error) {
     // Audio play failed - user interaction may be required
@@ -48,19 +75,20 @@ export async function startBgAudio() {
 }
 
 export async function toggleAudio() {
-  if (!bgAudio) {
-    console.log('Background audio not initialized');
-    return false;
-  }
-  
   try {
-    if (bgAudio.paused) {
+    if (!audioEnabled) {
       const success = await startBgAudio();
       syncAudioToggle();
+      notifyAudioToggleListeners();
       return success;
     } else {
-      bgAudio.pause();
+      // Only pause background audio if it was initialized
+      if (bgAudio) {
+        bgAudio.pause();
+      }
+      audioEnabled = false;
       syncAudioToggle();
+      notifyAudioToggleListeners();
       return true;
     }
   } catch (error) {
@@ -70,12 +98,28 @@ export async function toggleAudio() {
   }
 }
 
+// Turn music on
+export async function turnMusicOn() {
+  if (!audioEnabled) {
+    await toggleAudio();
+  }
+  return true;
+}
+
+// Turn music off
+export async function turnMusicOff() {
+  if (audioEnabled) {
+    await toggleAudio();
+  }
+  return true;
+}
+
 // Sync the audio toggle button with the audio state
 export function syncAudioToggle() {
   const audioToggleButton = document.getElementById("audio-toggle");
-  if (!audioToggleButton || !bgAudio) return;
-  audioToggleButton.innerHTML = !bgAudio.paused ? '<i data-lucide="volume-2"></i>' : '<i data-lucide="volume-off"></i>';
-  audioToggleButton.setAttribute("aria-label", !bgAudio.paused ? "Pause audio" : "Play audio");
+  if (!audioToggleButton) return;
+  audioToggleButton.innerHTML = audioEnabled ? '<i data-lucide="volume-2"></i>' : '<i data-lucide="volume-off"></i>';
+  audioToggleButton.setAttribute("aria-label", audioEnabled ? "Pause audio" : "Play audio");
   // Re-initialize icons after dynamically setting innerHTML
   if (window.lucide) {
     window.lucide.createIcons();

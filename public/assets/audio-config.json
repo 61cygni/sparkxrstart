@@ -1,0 +1,60 @@
+[
+  {
+    "audio_url": "machine-room.mp3",
+    "audio_position": [-27.91, 7.64, 22.88],
+    "falloff": {
+      "refDistance": 5,
+      "rolloffFactor": 5,
+      "maxDistance": 20,
+      "loop": true,
+      "volume": 0.4
+    }
+  },
+  {
+    "audio_url": "happy-relaxing-loop.mp3",
+    "audio_position": [-3.12, 7.54, -11.06],
+    "falloff": {
+      "refDistance": 5,
+      "rolloffFactor": 10,
+      "maxDistance": 10,
+      "loop": true,
+      "volume": 0.4
+    }
+  },
+  {
+    "audio_url": "spaceship-hum.mp3",
+    "audio_position": [11.28, 7.50, 0.37],
+    "falloff": {
+      "refDistance": 5,
+      "rolloffFactor": 10,
+      "maxDistance": 10,
+      "loop": true,
+      "volume": 0.4
+    }
+  },
+  {
+    "audio_url": "kitchen-ai.mp3",
+    "audio_position": [-37.25, 8.02, 8.71],
+    "falloff": {
+      "refDistance": 5,
+      "rolloffFactor": 10,
+      "maxDistance": 3,
+      "loop": false,
+      "volume": 0.7
+    },
+    "triggerRadius": 1
+  },
+  {
+    "audio_url": "ship-creaking.mp3",
+    "audio_position": [-13.74, 6.32, 2.35],
+    "falloff": {
+      "refDistance": 5,
+      "rolloffFactor": 10,
+      "maxDistance": 3,
+      "loop": false,
+      "volume": 0.5
+    },
+    "triggerRadius": 3
+  }
+]
+
