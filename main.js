@@ -4,10 +4,21 @@ import { createSparkScene, initializeVR, startAnimationLoop } from "./scene.js";
 import { initializeHUD, updateHUD } from "./hud.js";
 import { initializeSDFHands, updateSDFHands } from "./sdf-hand.js";
 import { initializeSpatialAudio, checkProximityTriggers } from "./spatial-audio.js";
+import { showProgress, updateProgress, hideProgress } from "./progress.js";
 
-// Create spark scene
+// Show progress overlay
+showProgress("Loading splats...");
+
+// Create spark scene with progress tracking
 const splatURL = await checkAssets('cozy_ship-lod.spz');
-const sparkScene = await createSparkScene(splatURL);
+const sparkScene = await createSparkScene(splatURL, {
+  onProgress: (progress, loadedBytes, totalBytes) => {
+    updateProgress(progress, loadedBytes, totalBytes);
+  }
+});
+
+// Hide progress overlay
+hideProgress();
 
 // Initialize background audio. This is played at a constant volume throughout the scene
 // const audioURL = await checkAssets('background.mp3');

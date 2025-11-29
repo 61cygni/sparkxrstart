@@ -2,6 +2,51 @@ import * as THREE from "three";
 import { NewSparkRenderer, SplatMesh, SparkControls, VRButton, XrHands } from "@sparkjsdev/spark";
 import { RENDER_CONFIG } from "./config.js";
 
+/**
+ * Fetch a file with progress tracking
+ * @param {string} url - URL to fetch
+ * @param {function} onProgress - Callback (progress, loadedBytes, totalBytes)
+ * @returns {Promise<ArrayBuffer>} - File bytes
+ */
+async function fetchWithProgress(url, onProgress) {
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  const contentLength = response.headers.get('content-length');
+  const totalBytes = contentLength ? parseInt(contentLength, 10) : null;
+  
+  const reader = response.body.getReader();
+  const chunks = [];
+  let loadedBytes = 0;
+  
+  while (true) {
+    const { done, value } = await reader.read();
+    
+    if (done) break;
+    
+    chunks.push(value);
+    loadedBytes += value.length;
+    
+    if (onProgress) {
+      const progress = totalBytes ? loadedBytes / totalBytes : loadedBytes / (loadedBytes + 10 * 1024 * 1024);
+      onProgress(progress, loadedBytes, totalBytes);
+    }
+  }
+  
+  // Combine chunks into single ArrayBuffer
+  const result = new Uint8Array(loadedBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    result.set(chunk, offset);
+    offset += chunk.length;
+  }
+  
+  return result.buffer;
+}
+
 export class SparkScene {
   constructor() {
     this.scene = null;
@@ -15,7 +60,15 @@ export class SparkScene {
   }
 }
 
-export async function createSparkScene(backgroundURL) {
+/**
+ * Create a Spark scene with gaussian splat background
+ * @param {string} backgroundURL - URL to the SPZ file
+ * @param {object} options - Options
+ * @param {function} options.onProgress - Progress callback (progress, loadedBytes, totalBytes)
+ * @returns {Promise<SparkScene>}
+ */
+export async function createSparkScene(backgroundURL, options = {}) {
+  const { onProgress } = options;
   const sparkScene = new SparkScene();
   
   // Renderer setup
@@ -39,9 +92,21 @@ export async function createSparkScene(backgroundURL) {
   sparkScene.scene.add(sparkScene.spark);
   sparkScene.localFrame.add(sparkScene.camera);
   
-  // Load main scene 
+  // Load main scene with progress tracking
   console.log('splatURL', backgroundURL);
-  sparkScene.background = new SplatMesh({ url: backgroundURL, lod: true, nonLod: true });
+  
+  let splatOptions = { lod: true, nonLod: true };
+  
+  if (onProgress) {
+    // Fetch with progress tracking, then pass bytes to SplatMesh
+    const fileBytes = await fetchWithProgress(backgroundURL, onProgress);
+    splatOptions.fileBytes = fileBytes;
+  } else {
+    // Direct URL loading (no progress)
+    splatOptions.url = backgroundURL;
+  }
+  
+  sparkScene.background = new SplatMesh(splatOptions);
   sparkScene.background.position.set(0, 0, 0);
   sparkScene.scene.add(sparkScene.background);
   

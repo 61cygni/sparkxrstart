@@ -78,10 +78,75 @@
       color: #fff;
       stroke: currentColor;
     }
+
+    /* Progress Overlay */
+    #mobile-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    #mobile-overlay.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    #overlay-message {
+      color: #fff;
+      font-size: 18px;
+      margin-bottom: 24px;
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    #progress-bar {
+      width: 80%;
+      max-width: 400px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      overflow: hidden;
+      display: none;
+    }
+
+    #progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+      border-radius: 4px;
+      transition: width 0.1s ease-out;
+    }
+
+    #progress-status {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+      margin-top: 12px;
+      text-align: center;
+    }
   </style>
 </head>
 
 <body>
+  <!-- Progress Overlay -->
+  <div id="mobile-overlay">
+    <div id="overlay-message"></div>
+    <div id="progress-bar">
+      <div id="progress-fill"></div>
+    </div>
+    <div id="progress-status"></div>
+  </div>
+
   <button id="audio-toggle" type="button" aria-label="Play audio"></button>
   <button id="hud-toggle" type="button" aria-label="Toggle HUD"></button>
   <script type="importmap">
