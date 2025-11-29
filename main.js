@@ -5,6 +5,8 @@ import { initializeHUD, updateHUD } from "./hud.js";
 import { initializeSDFHands, updateSDFHands } from "./sdf-hand.js";
 import { initializeSpatialAudio, checkProximityTriggers } from "./spatial-audio.js";
 import { showProgress, updateProgress, hideProgress } from "./progress.js";
+import { initializeRobot, updateRobot } from "./robot.js";
+import { initializeLighting } from "./lighting.js";
 
 // Show progress overlay
 showProgress("Loading splats...");
@@ -27,6 +29,12 @@ await initializeBackgroundAudio(null);
 
 // Initialize spatial audio
 await initializeSpatialAudio(sparkScene, 'audio-config.json', checkAssets);
+
+// Initialize lighting
+await initializeLighting(sparkScene, 'lighting-config.json', checkAssets);
+
+// Initialize robot
+await initializeRobot(sparkScene, 'robot-config.json', checkAssets);
 
 // Tweaks the scenes based on cozy_ship-lod.spz
 sparkScene.background.rotation.y = -Math.PI / 2; // this splats is upside down for whatever reason
@@ -51,6 +59,7 @@ if (!sparkScene.xrHands) {
 
 // Start animation loop
 startAnimationLoop(sparkScene, (sparkSceneIn, time) => {
+  updateRobot(time);
   updateSDFHands(sparkSceneIn, time);
   updateHUD(sparkSceneIn.localFrame.position);
   checkProximityTriggers(sparkSceneIn.localFrame.position);

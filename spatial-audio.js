@@ -110,6 +110,97 @@ function setSpatialAudioEnabled(enabled) {
   }
 }
 
+// Track attached audio sources separately
+const attachedAudioSources = [];
+
+/**
+ * Create a spatial audio source attached to a mesh (follows the mesh)
+ * @param {string} audioUrl - URL to the audio file
+ * @param {THREE.Object3D} parentMesh - The mesh to attach audio to
+ * @param {object} options - Configuration options
+ * @returns {Promise<THREE.PositionalAudio>} - The created positional audio
+ */
+export async function createAttachedAudio(audioUrl, parentMesh, options = {}) {
+  const {
+    refDistance = 2,
+    rolloffFactor = 1,
+    maxDistance = 20,
+    loop = true,
+    volume = 1
+  } = options;
+  
+  return new Promise((resolve, reject) => {
+    const positionalAudio = new THREE.PositionalAudio(audioListener);
+    
+    audioLoader.load(
+      audioUrl,
+      (buffer) => {
+        positionalAudio.setBuffer(buffer);
+        positionalAudio.setRefDistance(refDistance);
+        positionalAudio.setRolloffFactor(rolloffFactor);
+        positionalAudio.setMaxDistance(maxDistance);
+        positionalAudio.setLoop(loop);
+        positionalAudio.setVolume(volume);
+        
+        // Attach to parent mesh so it follows automatically
+        parentMesh.add(positionalAudio);
+        
+        // Track for audio toggle
+        attachedAudioSources.push({
+          audio: positionalAudio,
+          loop: loop
+        });
+        
+        // Start playing if audio is already enabled and it's a looping source
+        if (loop && isAudioEnabled()) {
+          positionalAudio.play();
+        }
+        
+        console.log(`Attached audio ${audioUrl} to mesh`);
+        resolve(positionalAudio);
+      },
+      (progress) => {
+        if (progress.total) {
+          console.log(`Loading attached audio: ${(progress.loaded / progress.total * 100).toFixed(0)}%`);
+        }
+      },
+      (error) => {
+        console.error('Error loading attached audio:', error);
+        reject(error);
+      }
+    );
+  });
+}
+
+// Combined function to handle both scene-positioned and attached audio
+function setAllSpatialAudioEnabled(enabled) {
+  // Handle scene-positioned sources
+  for (const source of spatialAudioSources) {
+    if (enabled) {
+      if (source.loop && !source.audio.isPlaying) {
+        source.audio.play();
+      }
+    } else {
+      if (source.audio.isPlaying) {
+        source.audio.pause();
+      }
+    }
+  }
+  
+  // Handle attached sources
+  for (const source of attachedAudioSources) {
+    if (enabled) {
+      if (source.loop && !source.audio.isPlaying) {
+        source.audio.play();
+      }
+    } else {
+      if (source.audio.isPlaying) {
+        source.audio.pause();
+      }
+    }
+  }
+}
+
   // Check proximity for triggered audio sources
 export function checkProximityTriggers(listenerPosition) {
     if (!isAudioEnabled()) return;
@@ -139,7 +230,7 @@ export async function initializeSpatialAudio(sparkScene, configURL, assetUrlFn) 
     onHudToggle(setSpatialAudioDebugVisibility);
     
     // Register for audio toggle events to start/stop spatial audio
-    onAudioToggle(setSpatialAudioEnabled);
+    onAudioToggle(setAllSpatialAudioEnabled);
 
     // Initialize spatial audio sources by loading config from JSON
     let audioSources = [];

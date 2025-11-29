@@ -40,9 +40,9 @@
       "rolloffFactor": 10,
       "maxDistance": 3,
       "loop": false,
-      "volume": 1.0 
+      "volume": 1.4 
     },
-    "triggerRadius": 1
+    "triggerRadius": 2
   },
   {
     "audio_url": "ship-creaking.mp3",

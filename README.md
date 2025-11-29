@@ -8,10 +8,11 @@ You can see a hosted version [here](https://sparkxrstart.netlify.app/)
 
 ## Features
 
-- 🎮 WebXR support with hand tracking
-- 🎨 Gaussian Splat rendering via Spark with LoD to support truly massive scenes
-- 🔊 Stereoscopic audio and spatial audio triggers 
-- 📊 HUD overlay with position/FPS display
+- WebXR support with hand tracking
+- Gaussian Splat rendering via Spark with LoD to support truly massive scenes
+- Stereoscopic audio and spatial audio triggers 
+- HUD overlay with position/FPS display
+- Mesh object/character insertion with lighting pacement
 
 ## Quick Start
 
@@ -34,6 +35,7 @@ npm run build
 ├── scene.js          # Scene creation and animation loop
 ├── audio.js          # Background audio management
 ├── spatial-audio.js  # 3D positional audio system
+├── lighting.js       # Lighting system and configuration
 ├── hud.js            # HUD overlay display
 ├── sdf-hand.js       # SDF hand tracking visualization
 ├── assets.js         # Asset URL resolution (local/CDN fallback)
@@ -41,7 +43,8 @@ npm run build
 ├── vite.config.js    # Vite configuration
 └── public/
     └── assets/       # Local assets (checked first, falls back to CDN)
-        └── audio-config.json  # Spatial audio source definitions
+        ├── audio-config.json  # Spatial audio source definitions
+        └── lighting-config.json  # Lighting configuration
 ```
 
 ## Asset Loading
@@ -100,7 +103,56 @@ The spatial audio system places 3D positional audio sources in the scene. Audio 
 - **Debug visualization**: Enable HUD to see red wireframe spheres at audio source locations
 - Audio sources respond to the global audio toggle (on/off)
 
-### Deploying
+## Mesh integration
+
+The code includes a floating drone as an example of mesh integration. The drone's waypoints are loaded from the config file
+`public/assets/robot-config.json`.
+
+## Lighting
+
+The lighting system places threejs lights in the scene from the following config file `public/assets/lighting-config.json`:
+
+```json
+[
+  {
+    "name": "ambient",
+    "type": "ambient",
+    "color": "#ffffff",
+    "intensity": 0.5
+  },
+  {
+    "name": "sun",
+    "type": "directional",
+    "color": "#ffffff",
+    "intensity": 1.0,
+    "position": [5, 10, 5],
+    "target": [0, 0, 0],
+    "castShadow": true,
+    "shadowMapSize": 1024
+  },
+  {
+    "name": "lamp",
+    "type": "point",
+    "color": "#ffffaa",
+    "intensity": 2.0,
+    "position": [-7, 7, -10],
+    "distance": 0,
+    "decay": 2
+  }
+]
+```
+
+### Light Types
+
+| Type | Description | Required Properties | Optional Properties |
+|------|-------------|---------------------|---------------------|
+| `ambient` | Overall scene illumination (no position) | `color`, `intensity` | - |
+| `directional` | Sun-like parallel rays | `color`, `intensity` | `position`, `target`, `castShadow`, `shadowMapSize` |
+| `point` | Light bulb, radiates in all directions | `color`, `intensity`, `position` | `distance`, `decay`, `castShadow` |
+| `spot` | Focused cone of light | `color`, `intensity`, `position` | `target`, `distance`, `angle`, `penumbra`, `decay`, `castShadow` |
+| `hemisphere` | Sky/ground gradient lighting | `color`, `intensity` | `groundColor`, `position` |
+
+## Deploying
 
 This project is easily deployable to any static hosting site (e.g. Netlify). I prefer to deploy directly rather than going through git. So the workflow I use is as follows:
 
@@ -131,6 +183,10 @@ The `netlify.toml` file in this project is already configured with the correct b
 - Set up proper redirects for single-page applications
 
 **Note:** Each time you make changes and want to update your live site, just run `netlify deploy --prod` again from your project directory.
+
+# Shortcomings
+
+Current there is no physics, or collisions. 
 
 
 ## Dependencies
