@@ -36,15 +36,19 @@ npm run build
 ├── audio.js          # Background audio management
 ├── spatial-audio.js  # 3D positional audio system
 ├── lighting.js       # Lighting system and configuration
-├── hud.js            # HUD overlay display
+├── robot.js          # Robot/drone mesh loading and waypoint navigation
+├── hud.js            # HUD overlay display for debugging
+├── progress.js       # Loading progress overlay
 ├── sdf-hand.js       # SDF hand tracking visualization
 ├── assets.js         # Asset URL resolution (local/CDN fallback)
 ├── config.js         # Configuration parameters
 ├── vite.config.js    # Vite configuration
+├── netlify.toml      # Netlify deployment configuration
 └── public/
     └── assets/       # Local assets (checked first, falls back to CDN)
-        ├── audio-config.json  # Spatial audio source definitions
-        └── lighting-config.json  # Lighting configuration
+        ├── audio-config.json      # Spatial audio source definitions
+        ├── lighting-config.json   # Lighting configuration
+        └── robot-config.json      # Robot waypoint navigation config
 ```
 
 ## Asset Loading
