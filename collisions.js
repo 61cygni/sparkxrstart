@@ -168,15 +168,6 @@ export function updateCollisions(sparkScene, deltaTime) {
 }
 
 /**
- * Get all collision meshes
- * @param {SparkScene} sparkScene - The spark scene
- * @returns {Array} - Array of collision mesh objects
- */
-export function getCollisionMeshes(sparkScene) {
-  return sparkScene.collisionMeshes;
-}
-
-/**
  * Create a dynamic physics body for a ball/sphere object
  * @param {SparkScene} sparkScene - The spark scene
  * @param {THREE.Object3D} mesh - The mesh object
@@ -210,7 +201,7 @@ export function addDynamicObject(sparkScene, mesh, name, radius, position, mass 
   // Store reference
   sparkScene.dynamicObjects.set(name, { mesh, body, collider });
   
-  console.log(`✓ Added dynamic physics body for "${name}" (radius: ${radius}, mass: ${mass})`);
+  console.log(`- Added dynamic physics body for "${name}" (radius: ${radius}, mass: ${mass})`);
   
   return { body, collider };
 }
@@ -233,34 +224,6 @@ export function updateDynamicObjects(sparkScene) {
       mesh.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w);
     }
   });
-}
-
-/**
- * Get a dynamic object by name
- * @param {SparkScene} sparkScene - The spark scene
- * @param {string} name - The object name
- * @returns {Object|null} - The dynamic object info or null if not found
- */
-export function getDynamicObject(sparkScene, name) {
-  return sparkScene.dynamicObjects.get(name) || null;
-}
-
-/**
- * Get all dynamic objects
- * @param {SparkScene} sparkScene - The spark scene
- * @returns {Map} - Map of all dynamic objects
- */
-export function getAllDynamicObjects(sparkScene) {
-  return sparkScene.dynamicObjects;
-}
-
-/**
- * Get the collision mesh scene for manual transforms
- * @param {SparkScene} sparkScene - The spark scene
- * @returns {THREE.Group|null} - The collision mesh scene or null if not loaded
- */
-export function getCollisionMeshScene(sparkScene) {
-  return sparkScene.collisionmesh;
 }
 
 /**

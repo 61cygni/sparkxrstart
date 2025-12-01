@@ -29,31 +29,30 @@ hideProgress();
 // Initialize background audio. This is played at a constant volume throughout the scene
 // const audioURL = await checkAssets('background.mp3');
 // await initializeBackgroundAudio(audioURL);
+
+// No background audio, only spatial audio
 await initializeBackgroundAudio(null);
 
-// Initialize spatial audio
 await initializeSpatialAudio(sparkScene, 'audio-config.json', checkAssets);
-
-// Initialize lighting
 await initializeLighting(sparkScene, 'lighting-config.json', checkAssets);
 
 // Initialize collisions (must be before objects so physics world exists)
 await initializeCollisions(sparkScene, 'cozy_space_ship_mesh.glb', checkAssets);
-
-// Initialize objects (balls will get physics bodies added)
 await initializeObjects(sparkScene, 'objects-config.json', checkAssets);
 
-// Initialize robot
+// Initialize droid that roams the ship
 await initializeRobot(sparkScene, 'robot-config.json', checkAssets);
 
-// Tweaks the scenes based on cozy_ship-lod.spz
+// Tweaks the scenes based on cozy_ship-lod.spz which is upside down for some reason
 sparkScene.gsplatscene.rotation.y = -Math.PI / 2; // this splat needs rotation to align
 if (sparkScene.collisionmesh) {
   sparkScene.collisionmesh.rotation.y = -Math.PI / 2; // match collision mesh rotation to splat
   // Create physics bodies after rotation is applied
   createCollisionPhysicsBodies(sparkScene);
 }
-sparkScene.localFrame.position.set(-2, 7, -6.13); // start in the bedroom
+
+// Start in the bedroom
+sparkScene.localFrame.position.set(-2, 7, -6.13); 
 
 // Initialize VR
 initializeVR(sparkScene);
@@ -64,10 +63,10 @@ sparkScene.controls.fpsMovement.moveSpeed *= 3.0;
 // Initialize HUD
 initializeHUD();
 
-// Initialize SDF hand tracking
+// SDFHAnds uses SDF edits to allow "touching" of the scene in VR. Uncomment to play around with it. 
 // initializeSDFHands(sparkScene);
 
-// Initialize throw hands for VR ball grabbing/throwing
+// Ability to throw objects in VR
 initializeThrowHands(sparkScene);
 
 // Debug keyboard controls
@@ -102,6 +101,6 @@ startAnimationLoop(sparkScene, (sparkSceneIn, time) => {
   // updateSDFHands(sparkSceneIn, time);
   updateThrowHands(sparkSceneIn, time); // VR ball grabbing/throwing
   updateHUD(sparkSceneIn.localFrame.position);
-  checkProximityTriggers(sparkSceneIn.localFrame.position);
+  checkProximityTriggers(sparkSceneIn.localFrame.position); // audio triggers
 });
 

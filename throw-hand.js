@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import * as RAPIER from "@dimforge/rapier3d-compat";
-import { getAllDynamicObjects } from "./collisions.js";
 
 // Grab configuration
 const GRAB_DISTANCE = 0.15; // Distance from hand to grab a ball
@@ -78,11 +77,10 @@ function isPinching(hand) {
  * @returns {object|null} - { name, object } or null if none in range
  */
 function findNearestGrabbable(sparkScene, position) {
-  const dynamicObjects = getAllDynamicObjects(sparkScene);
   let nearest = null;
   let nearestDistance = GRAB_DISTANCE;
   
-  dynamicObjects.forEach((obj, name) => {
+  sparkScene.dynamicObjects.forEach((obj, name) => {
     if (!obj.mesh || !obj.body) return;
     
     // Skip if already grabbed by other hand
