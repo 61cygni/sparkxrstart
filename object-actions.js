@@ -1,5 +1,43 @@
 import * as THREE from "three";
 import * as RAPIER from "@dimforge/rapier3d-compat";
+import { checkAssets } from "./assets.js";
+
+// Cache for sound effect audio
+let kickThrowSound = null;
+let soundLoaded = false;
+
+/**
+ * Load the kick/throw sound effect
+ */
+export async function initializeKickThrowSound() {
+  if (soundLoaded) return;
+  
+  try {
+    const soundURL = await checkAssets('beach-ball.mp3');
+    kickThrowSound = new Audio(soundURL);
+    kickThrowSound.preload = 'auto';
+    kickThrowSound.volume = 0.5; // Set reasonable volume
+    soundLoaded = true;
+    console.log('✓ Loaded kick/throw sound effect');
+  } catch (error) {
+    console.warn('Failed to load kick/throw sound effect:', error);
+  }
+}
+
+/**
+ * Play the kick/throw sound effect
+ */
+function playKickThrowSound() {
+  if (!kickThrowSound || !soundLoaded) return;
+  
+  // Clone the audio to allow overlapping sounds
+  const soundClone = kickThrowSound.cloneNode();
+  soundClone.volume = kickThrowSound.volume;
+  soundClone.play().catch(error => {
+    // Ignore play() errors (e.g., user hasn't interacted with page yet)
+    console.debug('Could not play sound effect:', error);
+  });
+}
 
 /**
  * Kick dynamic objects away from the viewer
@@ -53,13 +91,14 @@ export function kickDynamicObjects(sparkScene, kickDistance = 5.0, kickForce = 1
         body.applyImpulse(impulse, true);
         
         kickedCount++;
-        console.log(`⚽ Kicked "${name}" with force ${force.toFixed(2)} (distance: ${distance.toFixed(2)}m)`);
+        console.log(`- Kicked "${name}" with force ${force.toFixed(2)} (distance: ${distance.toFixed(2)}m)`);
       }
     }
   });
   
   if (kickedCount > 0) {
     console.log(`✓ Kicked ${kickedCount} dynamic object(s)`);
+    playKickThrowSound();
   } else {
     console.log(`No objects within kick distance (${kickDistance}m)`);
   }
@@ -127,13 +166,14 @@ export function throwDynamicObjects(sparkScene, throwDistance = 5.0, throwForce 
         body.applyImpulse(impulse, true);
         
         thrownCount++;
-        console.log(`🏀 Threw "${name}" with force ${force.toFixed(2)} (distance: ${distance.toFixed(2)}m)`);
+        console.log(`- Threw "${name}" with force ${force.toFixed(2)} (distance: ${distance.toFixed(2)}m)`);
       }
     }
   });
   
   if (thrownCount > 0) {
     console.log(`✓ Threw ${thrownCount} dynamic object(s)`);
+    playKickThrowSound();
   } else {
     console.log(`No objects within throw distance (${throwDistance}m)`);
   }

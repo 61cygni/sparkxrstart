@@ -9,7 +9,7 @@ import { initializeRobot, updateRobot } from "./robot.js";
 import { initializeLighting } from "./lighting.js";
 import { initializeObjects } from "./objects.js";
 import { initializeCollisions, updateCollisions, updateDynamicObjects, createCollisionPhysicsBodies } from "./collisions.js";
-import { kickDynamicObjects, throwDynamicObjects } from "./object-actions.js";
+import { kickDynamicObjects, throwDynamicObjects, initializeKickThrowSound } from "./object-actions.js";
 import { initializeThrowHands, updateThrowHands } from "./throw-hand.js";
 
 // Show progress overlay
@@ -68,6 +68,9 @@ initializeHUD();
 
 // Ability to throw objects in VR
 initializeThrowHands(sparkScene);
+
+// Initialize kick/throw sound effects
+await initializeKickThrowSound();
 
 // Debug keyboard controls
 window.addEventListener('keydown', (event) => {
