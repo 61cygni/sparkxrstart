@@ -12,6 +12,8 @@
   "devDependencies": {
     "vite": "^5.4.0",
     "vitest": "^2.1.0"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.12.0"
   }
 }
-

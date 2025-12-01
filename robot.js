@@ -8,6 +8,32 @@ const { FBXLoader } = await import("https://cdn.jsdelivr.net/npm/three@0.179.0/e
 let robot = null;
 let waypoints = [];
 let movementSpeed = 2.0; // units per second
+
+/**
+ * Remove embedded lights from a loaded model
+ * FBX files often contain lights from the 3D software used to create them
+ * @param {THREE.Object3D} object - The loaded model
+ */
+function removeEmbeddedLights(object) {
+  const lightsToRemove = [];
+  
+  object.traverse((child) => {
+    if (child.isLight) {
+      console.log(`⚠️ Found embedded light in robot: ${child.type} "${child.name || 'unnamed'}" at position [${child.position.toArray().join(', ')}], intensity: ${child.intensity}`);
+      lightsToRemove.push(child);
+    }
+  });
+  
+  // Remove embedded lights
+  lightsToRemove.forEach((light) => {
+    if (light.parent) {
+      light.parent.remove(light);
+      console.log(`  → Removed embedded light from robot: ${light.type}`);
+    }
+  });
+  
+  return lightsToRemove.length;
+}
 let pauseDuration = 1000; // Pause duration in ms
 let rotationDuration = 1500; // Rotation duration in ms
 
@@ -69,6 +95,12 @@ export async function initializeRobot(sparkScene, configFile = 'robot-config.jso
       robotURL,
       (fbx) => {
         robot = fbx;
+        
+        // Remove any embedded lights from the FBX file
+        const removedCount = removeEmbeddedLights(fbx);
+        if (removedCount > 0) {
+          console.log(`Removed ${removedCount} embedded light(s) from robot.fbx`);
+        }
         
         // Set initial position to first waypoint
         if (waypoints.length > 0) {

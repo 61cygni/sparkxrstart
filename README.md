@@ -12,7 +12,9 @@ You can see a hosted version [here](https://sparkxrstart.netlify.app/)
 - Gaussian Splat rendering via Spark with LoD to support truly massive scenes
 - Stereoscopic audio and spatial audio triggers 
 - HUD overlay with position/FPS display
-- Mesh object/character insertion with lighting pacement
+- Mesh object/character insertion with lighting placement
+- Physics and Collisions via Rapier 
+- Dynamic object support, kick and throw objects using keyboard or VR hand tracking
 
 ## Quick Start
 
@@ -30,25 +32,30 @@ npm run build
 ## Project Structure
 
 ```
-├── index.html        # Main HTML entry point
-├── main.js           # Application entry point
-├── scene.js          # Scene creation and animation loop
-├── audio.js          # Background audio management
-├── spatial-audio.js  # 3D positional audio system
-├── lighting.js       # Lighting system and configuration
-├── robot.js          # Robot/drone mesh loading and waypoint navigation
-├── hud.js            # HUD overlay display for debugging
-├── progress.js       # Loading progress overlay
-├── sdf-hand.js       # SDF hand tracking visualization
-├── assets.js         # Asset URL resolution (local/CDN fallback)
-├── config.js         # Configuration parameters
-├── vite.config.js    # Vite configuration
-├── netlify.toml      # Netlify deployment configuration
+├── index.html          # Main HTML entry point
+├── main.js             # Application entry point
+├── scene.js            # Scene creation and animation loop
+├── audio.js            # Background audio management
+├── spatial-audio.js    # 3D positional audio system
+├── lighting.js         # Lighting system and configuration
+├── objects.js          # Mesh object loading from config
+├── collisions.js       # Rapier physics world and collision mesh handling
+├── object-actions.js   # Object interactions (kick, throw)
+├── throw-hand.js       # VR hand tracking for grabbing/throwing objects
+├── robot.js            # Robot/drone mesh loading and waypoint navigation
+├── hud.js              # HUD overlay display for debugging
+├── progress.js         # Loading progress overlay
+├── sdf-hand.js         # SDF hand tracking visualization
+├── assets.js           # Asset URL resolution (local/CDN fallback)
+├── config.js           # Configuration parameters
+├── vite.config.js      # Vite configuration
+├── netlify.toml        # Netlify deployment configuration
 └── public/
-    └── assets/       # Local assets (checked first, falls back to CDN)
-        ├── audio-config.json      # Spatial audio source definitions
-        ├── lighting-config.json   # Lighting configuration
-        └── robot-config.json      # Robot waypoint navigation config
+    └── assets/         # Local assets (checked first, falls back to CDN)
+        ├── audio-config.json       # Spatial audio source definitions
+        ├── lighting-config.json    # Lighting configuration
+        ├── objects-config.json     # Dynamic object definitions
+        ├── robot-config.json       # Robot waypoint navigation config
 ```
 
 ## Asset Loading
@@ -107,7 +114,24 @@ The spatial audio system places 3D positional audio sources in the scene. Audio 
 - **Debug visualization**: Enable HUD to see red wireframe spheres at audio source locations
 - Audio sources respond to the global audio toggle (on/off)
 
-## Mesh integration
+## Mesh Objects
+
+Load mesh objects (FBX, GLTF, GLB) from a config file `public/assets/objects-config.json`:
+
+```json
+[
+  {
+    "name": "soccerball",
+    "model": "soccer_ball/soccer_ball.glb",
+    "position": [-2.5, 8, -6],
+    "scale": 0.3
+  }
+]
+```
+
+All objects get turned into dynamic objects and can be kicked or thrown. 
+
+## Robot/Drone
 
 The code includes a floating drone as an example of mesh integration. The drone's waypoints are loaded from the config file
 `public/assets/robot-config.json`.
@@ -156,6 +180,33 @@ The lighting system places threejs lights in the scene from the following config
 | `spot` | Focused cone of light | `color`, `intensity`, `position` | `target`, `distance`, `angle`, `penumbra`, `decay`, `castShadow` |
 | `hemisphere` | Sky/ground gradient lighting | `color`, `intensity` | `groundColor`, `position` |
 
+## Physics and Collisions
+
+The project uses [Rapier](https://rapier.rs/) for physics simulation.
+
+### Dynamic Objects
+
+  All objects from `objects-config.json` automatically become dynamic physics objects with:
+- Sphere colliders based on bounding box
+- Configurable mass, restitution (bounciness), and friction
+- Real-time physics simulation (gravity, bouncing, rolling)
+
+### Object Interactions
+
+**Keyboard Controls:**
+
+| Key | Action |
+|-----|--------|
+| `K` | **Kick** - Push nearby objects away from the camera with a low trajectory |
+| `T` | **Throw** - Launch nearby objects in the direction you're looking with a high arc |
+
+Both actions only affect objects within 5 meters of the camera. Force scales with distance (closer = stronger).
+
+**VR Hand Tracking:**
+- Pinch gesture (thumb + index finger) near an object to grab it
+- Move your hand while pinching to carry the object
+- Release the pinch to throw - velocity is calculated from hand movement
+
 ## Deploying
 
 This project is easily deployable to any static hosting site (e.g. Netlify). I prefer to deploy directly rather than going through git. So the workflow I use is as follows:
@@ -188,15 +239,11 @@ The `netlify.toml` file in this project is already configured with the correct b
 
 **Note:** Each time you make changes and want to update your live site, just run `netlify deploy --prod` again from your project directory.
 
-# Shortcomings
-
-Current there is no physics, or collisions. 
-
-
 ## Dependencies
 
 - [Three.js](https://threejs.org/) - 3D rendering
 - [Spark](https://sparkjs.dev/) - Gaussian Splat rendering and WebXR utilities
+- [Rapier](https://rapier.rs/) - Physics engine (via @dimforge/rapier3d-compat)
 - [Vite](https://vitejs.dev/) - Build tooling
 - [Lucide](https://lucide.dev/) - UI icons
 

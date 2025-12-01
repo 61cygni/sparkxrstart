@@ -2,6 +2,29 @@ import * as THREE from "three";
 import { NewSparkRenderer, SplatMesh, SparkControls, VRButton, XrHands } from "@sparkjsdev/spark";
 import { RENDER_CONFIG } from "./config.js";
 
+
+/**
+ *  Primary datascructure for all the scene state
+ * 
+ */
+
+export class SparkScene {
+  constructor() {
+    this.scene = null;
+    this.renderer = null;
+    this.camera = null;
+    this.localFrame = null;
+    this.spark = null;
+    this.gsplatscene = null;
+    this.collisionmesh = null;
+    this.physicsWorld = null;
+    this.collisionMeshes = [];
+    this.dynamicObjects = new Map();
+    this.controls = null;
+    this.xrHands = null;
+  }
+}
+
 /**
  * Fetch a file with progress tracking
  * @param {string} url - URL to fetch
@@ -45,19 +68,6 @@ async function fetchWithProgress(url, onProgress) {
   }
   
   return result.buffer;
-}
-
-export class SparkScene {
-  constructor() {
-    this.scene = null;
-    this.renderer = null;
-    this.camera = null;
-    this.localFrame = null;
-    this.spark = null;
-    this.background = null;
-    this.controls = null;
-    this.xrHands = null;
-  }
 }
 
 /**
@@ -106,9 +116,9 @@ export async function createSparkScene(backgroundURL, options = {}) {
     splatOptions.url = backgroundURL;
   }
   
-  sparkScene.background = new SplatMesh(splatOptions);
-  sparkScene.background.position.set(0, 0, 0);
-  sparkScene.scene.add(sparkScene.background);
+  sparkScene.gsplatscene = new SplatMesh(splatOptions);
+  sparkScene.gsplatscene.position.set(0, 0, 0);
+  sparkScene.scene.add(sparkScene.gsplatscene);
   
   
   // Window resize handler

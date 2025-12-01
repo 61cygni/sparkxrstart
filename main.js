@@ -7,6 +7,10 @@ import { initializeSpatialAudio, checkProximityTriggers } from "./spatial-audio.
 import { showProgress, updateProgress, hideProgress } from "./progress.js";
 import { initializeRobot, updateRobot } from "./robot.js";
 import { initializeLighting } from "./lighting.js";
+import { initializeObjects } from "./objects.js";
+import { initializeCollisions, updateCollisions, updateDynamicObjects, createCollisionPhysicsBodies } from "./collisions.js";
+import { kickDynamicObjects, throwDynamicObjects } from "./object-actions.js";
+import { initializeThrowHands, updateThrowHands } from "./throw-hand.js";
 
 // Show progress overlay
 showProgress("Loading splats...");
@@ -33,11 +37,22 @@ await initializeSpatialAudio(sparkScene, 'audio-config.json', checkAssets);
 // Initialize lighting
 await initializeLighting(sparkScene, 'lighting-config.json', checkAssets);
 
+// Initialize collisions (must be before objects so physics world exists)
+await initializeCollisions(sparkScene, 'cozy_space_ship_mesh.glb', checkAssets);
+
+// Initialize objects (balls will get physics bodies added)
+await initializeObjects(sparkScene, 'objects-config.json', checkAssets);
+
 // Initialize robot
 await initializeRobot(sparkScene, 'robot-config.json', checkAssets);
 
 // Tweaks the scenes based on cozy_ship-lod.spz
-sparkScene.background.rotation.y = -Math.PI / 2; // this splats is upside down for whatever reason
+sparkScene.gsplatscene.rotation.y = -Math.PI / 2; // this splat needs rotation to align
+if (sparkScene.collisionmesh) {
+  sparkScene.collisionmesh.rotation.y = -Math.PI / 2; // match collision mesh rotation to splat
+  // Create physics bodies after rotation is applied
+  createCollisionPhysicsBodies(sparkScene);
+}
 sparkScene.localFrame.position.set(-2, 7, -6.13); // start in the bedroom
 
 // Initialize VR
@@ -50,7 +65,22 @@ sparkScene.controls.fpsMovement.moveSpeed *= 3.0;
 initializeHUD();
 
 // Initialize SDF hand tracking
-initializeSDFHands(sparkScene);
+// initializeSDFHands(sparkScene);
+
+// Initialize throw hands for VR ball grabbing/throwing
+initializeThrowHands(sparkScene);
+
+// Debug keyboard controls
+window.addEventListener('keydown', (event) => {
+  // Press 'k' to kick nearby dynamic objects away from viewer
+  if (event.key === 'k' || event.key === 'K') {
+    kickDynamicObjects(sparkScene);
+  }
+  // Press 't' to throw nearby dynamic objects with high arc
+  if (event.key === 't' || event.key === 'T') {
+    throwDynamicObjects(sparkScene);
+  }
+});
 
 // with VR, we need to wait for a user gesture to start music.  Otherwise, start music immediately.
 if (!sparkScene.xrHands) {
@@ -58,9 +88,19 @@ if (!sparkScene.xrHands) {
 } 
 
 // Start animation loop
+let lastPhysicsTime = null;
 startAnimationLoop(sparkScene, (sparkSceneIn, time) => {
+  // Update physics (convert milliseconds to seconds)
+  if (lastPhysicsTime !== null) {
+    const deltaTime = (time - lastPhysicsTime) / 1000; // Convert to seconds
+    updateCollisions(sparkSceneIn, deltaTime);
+    updateDynamicObjects(sparkSceneIn); // Sync visual meshes with physics bodies
+  }
+  lastPhysicsTime = time;
+  
   updateRobot(time);
-  updateSDFHands(sparkSceneIn, time);
+  // updateSDFHands(sparkSceneIn, time);
+  updateThrowHands(sparkSceneIn, time); // VR ball grabbing/throwing
   updateHUD(sparkSceneIn.localFrame.position);
   checkProximityTriggers(sparkSceneIn.localFrame.position);
 });
