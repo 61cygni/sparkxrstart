@@ -11,6 +11,7 @@ import { initializeObjects } from "./objects.js";
 import { initializeCollisions, updateCollisions, updateDynamicObjects, createCollisionPhysicsBodies } from "./collisions.js";
 import { kickDynamicObjects, throwDynamicObjects, initializeKickThrowSound } from "./object-actions.js";
 import { initializeThrowHands, updateThrowHands } from "./throw-hand.js";
+import { initializeCharacterPhysics, updateCharacterPhysics, jump, isPhysicsEnabled } from "./character-physics.js";
 
 // Show progress overlay
 showProgress("Loading splats...");
@@ -69,6 +70,9 @@ initializeHUD();
 // Ability to throw objects in VR
 initializeThrowHands(sparkScene);
 
+// Initialize character physics (toggle to enable walking with collisions)
+initializeCharacterPhysics(sparkScene);
+
 // Initialize kick/throw sound effects
 await initializeKickThrowSound();
 
@@ -81,6 +85,11 @@ window.addEventListener('keydown', (event) => {
   // Press 't' to throw nearby dynamic objects with high arc
   if (event.key === 't' || event.key === 'T') {
     throwDynamicObjects(sparkScene);
+  }
+  // Press Space to jump (when physics enabled)
+  if (event.code === 'Space' && isPhysicsEnabled()) {
+    event.preventDefault(); // Prevent page scroll
+    jump();
   }
 });
 
@@ -97,6 +106,7 @@ startAnimationLoop(sparkScene, (sparkSceneIn, time) => {
     const deltaTime = (time - lastPhysicsTime) / 1000; // Convert to seconds
     updateCollisions(sparkSceneIn, deltaTime);
     updateDynamicObjects(sparkSceneIn); // Sync visual meshes with physics bodies
+    updateCharacterPhysics(sparkSceneIn, deltaTime); // Character collisions and movement
   }
   lastPhysicsTime = time;
   

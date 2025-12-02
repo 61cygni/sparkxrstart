@@ -18,7 +18,7 @@ export async function initializeKickThrowSound() {
     kickThrowSound.preload = 'auto';
     kickThrowSound.volume = 0.5; // Set reasonable volume
     soundLoaded = true;
-    console.log('✓ Loaded kick/throw sound effect');
+    console.log('- Loaded kick/throw sound effect');
   } catch (error) {
     console.warn('Failed to load kick/throw sound effect:', error);
   }
