@@ -179,3 +179,25 @@ export function throwDynamicObjects(sparkScene, throwDistance = 5.0, throwForce 
   }
 }
 
+/**
+ * Initialize keyboard handlers for object actions (kick and throw)
+ * @param {SparkScene} sparkScene - The spark scene
+ * @param {object} sceneConfig - Scene configuration with flags
+ */
+export function initializeObjectActionKeyHandlers(sparkScene, sceneConfig) {
+  if (!sceneConfig.flags.enableDynamicObjects) {
+    return; // Skip if dynamic objects are not enabled
+  }
+
+  window.addEventListener('keydown', (event) => {
+    // Press 'k' to kick nearby dynamic objects away from viewer
+    if (event.key === 'k' || event.key === 'K') {
+      kickDynamicObjects(sparkScene);
+    }
+    // Press 't' to throw nearby dynamic objects with high arc
+    if (event.key === 't' || event.key === 'T') {
+      throwDynamicObjects(sparkScene);
+    }
+  });
+}
+

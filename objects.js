@@ -39,12 +39,13 @@ function removeEmbeddedLights(object) {
 /**
  * Load a single mesh object (supports FBX, GLTF, and GLB formats)
  * @param {string} modelPath - Path to the model file
+ * @param {function} assetUrlFn - Function to resolve asset URLs
  * @returns {Promise<THREE.Group>} - The loaded mesh
  */
-async function loadMeshObject(modelPath) {
+async function loadMeshObject(modelPath, assetUrlFn = checkAssets) {
   // Trim whitespace from the model path
   const trimmedPath = modelPath.trim();
-  const modelURL = await checkAssets(trimmedPath);
+  const modelURL = await assetUrlFn(trimmedPath);
   const modelDir = modelURL.substring(0, modelURL.lastIndexOf('/') + 1);
   
   // Detect file type from extension (trim whitespace)
@@ -141,7 +142,7 @@ export async function initializeObjects(sparkScene, configFile = 'objects-config
       }
       
       // Load the mesh
-      const mesh = await loadMeshObject(model);
+      const mesh = await loadMeshObject(model, assetUrlFn);
       
       // Set position
       mesh.position.set(position[0], position[1], position[2]);

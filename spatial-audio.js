@@ -239,8 +239,13 @@ export async function initializeSpatialAudio(sparkScene, configURL, assetUrlFn) 
       const response = await fetch(audioConfigUrl);
       const audioConfig = await response.json();
       
+      // Handle both old format (array) and new format (object with spatialAudioSources)
+      const sourcesArray = Array.isArray(audioConfig) 
+        ? audioConfig 
+        : (audioConfig.spatialAudioSources || []);
+      
       // Map the audio URLs using getAssetUrl (must await each one)
-      audioSources = await Promise.all(audioConfig.map(async (source) => ({
+      audioSources = await Promise.all(sourcesArray.map(async (source) => ({
         ...source,
         audio_url: await assetUrlFn(source.audio_url)
       })));

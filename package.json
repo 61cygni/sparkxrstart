@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "copy-scene-configs": "node scripts/copy-scene-configs.js",
+    "dev": "npm run copy-scene-configs && vite",
+    "prebuild": "npm run copy-scene-configs",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",

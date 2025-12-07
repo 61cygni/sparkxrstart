@@ -1,4 +1,7 @@
-import { checkAssets } from "./assets.js";
+// Scene selection - change this to load a different scene
+const SCENE_NAME = 'worldship';
+
+import { createCheckSceneAssets } from "./assets-config.js";
 import { initializeBackgroundAudio, turnMusicOn } from "./audio.js";
 import { createSparkScene, initializeVR, startAnimationLoop } from "./scene.js";
 import { initializeHUD, updateHUD } from "./hud.js";
@@ -9,89 +12,114 @@ import { initializeRobot, updateRobot } from "./robot.js";
 import { initializeLighting } from "./lighting.js";
 import { initializeObjects } from "./objects.js";
 import { initializeCollisions, updateCollisions, updateDynamicObjects, createCollisionPhysicsBodies } from "./collisions.js";
-import { kickDynamicObjects, throwDynamicObjects, initializeKickThrowSound } from "./object-actions.js";
+import { initializeKickThrowSound, initializeObjectActionKeyHandlers } from "./object-actions.js";
 import { initializeThrowHands, updateThrowHands } from "./throw-hand.js";
-import { initializeCharacterPhysics, updateCharacterPhysics, jump, isPhysicsEnabled } from "./character-physics.js";
+import { initializeCharacterPhysics, updateCharacterPhysics, initializeJumpKeyHandler } from "./character-physics.js";
+
+// Load scene-specific config
+const sceneConfig = await import(`./scenes/${SCENE_NAME}/config.js`);
+const { SCENE_CONFIG, CONTROLS_CONFIG, RENDER_CONFIG, ASSETS_CONFIG } = sceneConfig;
+
+// Create asset resolver with scene-specific config
+// The function will first check the scene directory, then the local filesystem, and finally
+// the CDN. Paths are located in the config.js file.
+const checkSceneAssets = createCheckSceneAssets(SCENE_NAME, ASSETS_CONFIG);
 
 // Show progress overlay
 showProgress("Loading splats...");
 
 // Create spark scene with progress tracking
-const splatURL = await checkAssets('cozy_ship-lod.spz');
+const splatURL = await checkSceneAssets(SCENE_CONFIG.sceneSpzFileName);
 const sparkScene = await createSparkScene(splatURL, {
   onProgress: (progress, loadedBytes, totalBytes) => {
     updateProgress(progress, loadedBytes, totalBytes);
   }
-});
+}, RENDER_CONFIG);
 
 // Hide progress overlay
 hideProgress();
 
 // Initialize background audio. This is played at a constant volume throughout the scene
-// const audioURL = await checkAssets('background.mp3');
-// await initializeBackgroundAudio(audioURL);
+await initializeBackgroundAudio(SCENE_NAME, SCENE_CONFIG, checkSceneAssets);
 
-// No background audio, only spatial audio
-await initializeBackgroundAudio(null);
+await initializeSpatialAudio(sparkScene, SCENE_CONFIG.configFiles.audioConfig, checkSceneAssets);
 
-await initializeSpatialAudio(sparkScene, 'audio-config.json', checkAssets);
-await initializeLighting(sparkScene, 'lighting-config.json', checkAssets);
-
-// Initialize collisions (must be before objects so physics world exists)
-await initializeCollisions(sparkScene, 'cozy_space_ship_mesh.glb', checkAssets);
-await initializeObjects(sparkScene, 'objects-config.json', checkAssets);
-
-// Initialize droid that roams the ship
-await initializeRobot(sparkScene, 'robot-config.json', checkAssets);
-
-// Tweaks the scenes based on cozy_ship-lod.spz which is upside down for some reason
-sparkScene.gsplatscene.rotation.y = -Math.PI / 2; // this splat needs rotation to align
-if (sparkScene.collisionmesh) {
-  sparkScene.collisionmesh.rotation.y = -Math.PI / 2; // match collision mesh rotation to splat
-  // Create physics bodies after rotation is applied
-  createCollisionPhysicsBodies(sparkScene);
+// Initialize lighting if enabled
+if (SCENE_CONFIG.flags.enableLighting) {
+  await initializeLighting(sparkScene, SCENE_CONFIG.configFiles.lightingConfig, checkSceneAssets);
 }
 
-// Start in the bedroom
-sparkScene.localFrame.position.set(-2, 7, -6.13); 
+// Initialize collisions (must be before objects so physics world exists)
+if (SCENE_CONFIG.flags.enablePhysics) {
+  console.log('Initializing collisions with proxy mesh', SCENE_CONFIG.proxyMeshFileName);
+  await initializeCollisions(sparkScene, SCENE_CONFIG.proxyMeshFileName, checkSceneAssets);
+}
 
-// Initialize VR
-initializeVR(sparkScene);
+// Initialize objects (only if dynamic objects are enabled)
+if (SCENE_CONFIG.flags.enableDynamicObjects) {
+  await initializeObjects(sparkScene, SCENE_CONFIG.configFiles.objectsConfig, checkSceneAssets);
+}
 
-// controls get reset if initializing VR so set control speed after
-sparkScene.controls.fpsMovement.moveSpeed *= 3.0; 
+// Initialize droid that roams the ship
+// await initializeRobot(sparkScene, SCENE_CONFIG.configFiles.robotConfig, checkSceneAssets);
 
-// Initialize HUD
-initializeHUD();
+// Apply scene rotation from config
+sparkScene.gsplatscene.rotation.set(
+  SCENE_CONFIG.sceneRotation.x,
+  SCENE_CONFIG.sceneRotation.y,
+  SCENE_CONFIG.sceneRotation.z
+);
+if (sparkScene.collisionmesh) {
+  sparkScene.collisionmesh.rotation.set(
+    SCENE_CONFIG.sceneRotation.x,
+    SCENE_CONFIG.sceneRotation.y,
+    SCENE_CONFIG.sceneRotation.z
+  );
+  // Create physics bodies after rotation is applied
+  if (SCENE_CONFIG.flags.enablePhysics) {
+    createCollisionPhysicsBodies(sparkScene);
+  }
+}
 
-// SDFHAnds uses SDF edits to allow "touching" of the scene in VR. Uncomment to play around with it. 
-// initializeSDFHands(sparkScene);
+// Set player starting position from config
+sparkScene.localFrame.position.set(
+  SCENE_CONFIG.playerStartPosition.x,
+  SCENE_CONFIG.playerStartPosition.y,
+  SCENE_CONFIG.playerStartPosition.z
+); 
 
-// Ability to throw objects in VR
-initializeThrowHands(sparkScene);
+// Initialize VR if enabled
+if (SCENE_CONFIG.flags.enableVR) {
+  initializeVR(sparkScene, {}, RENDER_CONFIG);
+}
+
+// Controls get reset if initializing VR so set control speed after
+sparkScene.controls.fpsMovement.moveSpeed *= CONTROLS_CONFIG.moveSpeedMultiplier; 
+
+// Initialize HUD if enabled
+if (SCENE_CONFIG.flags.enableHUD) {
+  initializeHUD();
+}
+
+// SDF Hands uses SDF edits to allow "touching" of the scene in VR
+if (SCENE_CONFIG.flags.enableHands) {
+  initializeSDFHands(sparkScene);
+}
+
+// Initialize throw hands and dynamic objects if enabled
+if (SCENE_CONFIG.flags.enableDynamicObjects) {
+  initializeThrowHands(sparkScene);
+  await initializeKickThrowSound();
+}
 
 // Initialize character physics (toggle to enable walking with collisions)
-initializeCharacterPhysics(sparkScene);
+if (SCENE_CONFIG.flags.enablePhysics) {
+  initializeCharacterPhysics(sparkScene);
+  initializeJumpKeyHandler(sparkScene, SCENE_CONFIG);
+}
 
-// Initialize kick/throw sound effects
-await initializeKickThrowSound();
-
-// Debug keyboard controls
-window.addEventListener('keydown', (event) => {
-  // Press 'k' to kick nearby dynamic objects away from viewer
-  if (event.key === 'k' || event.key === 'K') {
-    kickDynamicObjects(sparkScene);
-  }
-  // Press 't' to throw nearby dynamic objects with high arc
-  if (event.key === 't' || event.key === 'T') {
-    throwDynamicObjects(sparkScene);
-  }
-  // Press Space to jump (when physics enabled)
-  if (event.code === 'Space' && isPhysicsEnabled()) {
-    event.preventDefault(); // Prevent page scroll
-    jump();
-  }
-});
+// Initialize keyboard handlers for object actions (kick and throw)
+initializeObjectActionKeyHandlers(sparkScene, SCENE_CONFIG);
 
 // with VR, we need to wait for a user gesture to start music.  Otherwise, start music immediately.
 if (!sparkScene.xrHands) {
@@ -102,18 +130,36 @@ if (!sparkScene.xrHands) {
 let lastPhysicsTime = null;
 startAnimationLoop(sparkScene, (sparkSceneIn, time) => {
   // Update physics (convert milliseconds to seconds)
-  if (lastPhysicsTime !== null) {
+  if (SCENE_CONFIG.flags.enablePhysics && lastPhysicsTime !== null) {
     const deltaTime = (time - lastPhysicsTime) / 1000; // Convert to seconds
     updateCollisions(sparkSceneIn, deltaTime);
-    updateDynamicObjects(sparkSceneIn); // Sync visual meshes with physics bodies
+    
+    // Update dynamic objects if enabled
+    if (SCENE_CONFIG.flags.enableDynamicObjects) {
+      updateDynamicObjects(sparkSceneIn); // Sync visual meshes with physics bodies
+    }
+    
     updateCharacterPhysics(sparkSceneIn, deltaTime); // Character collisions and movement
   }
   lastPhysicsTime = time;
   
-  updateRobot(time);
-  // updateSDFHands(sparkSceneIn, time);
-  updateThrowHands(sparkSceneIn, time); // VR ball grabbing/throwing
-  updateHUD(sparkSceneIn.localFrame.position);
+  // updateRobot(time);
+  
+  // Update SDF hands if enabled
+  if (SCENE_CONFIG.flags.enableHands) {
+    updateSDFHands(sparkSceneIn, time);
+  }
+  
+  // Update throw hands if dynamic objects are enabled
+  if (SCENE_CONFIG.flags.enableDynamicObjects) {
+    updateThrowHands(sparkSceneIn, time); // VR ball grabbing/throwing
+  }
+  
+  // Update HUD if enabled
+  if (SCENE_CONFIG.flags.enableHUD) {
+    updateHUD(sparkSceneIn.localFrame.position);
+  }
+  
   checkProximityTriggers(sparkSceneIn.localFrame.position); // audio triggers
 });
 

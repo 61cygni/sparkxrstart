@@ -1,0 +1,153 @@
+{
+  "BACKGROUND_AUDIO_CONFIG": {
+    "backgroundMusicFileName": "start-bg.mp3",
+    "volume": 0.2
+  },
+  "spatialAudioSources": [
+    {
+      "audio_url": "forest.mp3",
+      "audio_position": [-0.37, 3.81, -0.47],
+      "falloff": {
+        "refDistance": 5,
+        "rolloffFactor": 5,
+        "maxDistance": 10,
+        "loop": true,
+        "volume": 0.1
+      }
+    },
+    {
+      "audio_url": "electric-drone.mp3",
+      "audio_position": [-3.12, 7.54, -11.06],
+      "falloff": {
+        "refDistance": 5,
+        "rolloffFactor": 10,
+        "maxDistance": 10,
+        "loop": true,
+        "volume": 0.4
+      }
+    },
+    {
+      "audio_url": "flicker-electric.mp3",
+      "audio_position": [-25.95, 3.13, -5.55],
+      "falloff": {
+        "refDistance": 5,
+        "rolloffFactor": 10,
+        "maxDistance": 10,
+        "loop": true,
+        "volume": 0.7
+      }
+    },
+    {
+      "audio_url": "falling-water.mp3",
+      "audio_position": [-5.44, 7.74, -54.24],
+      "falloff": {
+        "refDistance": 10,
+        "rolloffFactor": 2,
+        "maxDistance": 12,
+        "loop": true,
+        "volume": 0.5
+      }
+    },
+    {
+      "audio_url": "falling-water.mp3",
+      "audio_position": [-10.11, 4.83, -41.50],
+      "falloff": {
+        "refDistance": 10,
+        "rolloffFactor": 2,
+        "maxDistance": 10,
+        "loop": true,
+        "volume": 0.5
+      }
+    },
+    {
+      "audio_url": "drip.mp3",
+      "audio_position": [-105.38, 5.68, 33.91],
+      "falloff": {
+        "refDistance": 10,
+        "rolloffFactor": 2,
+        "maxDistance": 10,
+        "loop": true,
+        "volume": 0.7
+      }
+    },
+    {
+      "audio_url": "engine-room.mp3",
+      "audio_position": [-113.42, -16.07, 35.06],
+      "falloff": {
+        "refDistance": 10,
+        "rolloffFactor": 2,
+        "maxDistance": 10,
+        "loop": true,
+        "volume": 0.5
+      }
+    },
+    {
+      "audio_url": "wind.mp3",
+      "audio_position": [-118.95, -13.45, 113.83],
+      "falloff": {
+        "refDistance": 10,
+        "rolloffFactor": 2,
+        "maxDistance": 10,
+        "loop": true,
+        "volume": 0.7
+      }
+    },
+    {
+      "audio_url": "jazz.mp3",
+      "audio_position": [-94.2, -17.02, 134.06],
+      "falloff": {
+        "refDistance": 5,
+        "rolloffFactor": 5,
+        "maxDistance": 7,
+        "loop": true,
+        "volume": 0.5
+      }
+    },
+    {
+      "audio_url": "breathing.mp3",
+      "audio_position": [-104.04, -23.88, 180.92],
+      "falloff": {
+        "refDistance": 5,
+        "rolloffFactor": 5,
+        "maxDistance": 7,
+        "loop": true,
+        "volume": 1.2
+      }
+    },
+    {
+      "audio_url": "chant.mp3",
+      "audio_position": [-108.50, -28.19, 200.97],
+      "falloff": {
+        "refDistance": 5,
+        "rolloffFactor": 3,
+        "maxDistance": 10,
+        "loop": true,
+        "volume": 0.9
+      }
+    },
+    {
+      "audio_url": "piano.mp3",
+      "audio_position": [-138.21, -29.08, 203.49],
+      "falloff": {
+        "refDistance": 5,
+        "rolloffFactor": 3,
+        "maxDistance": 10,
+        "loop": true,
+        "volume": 0.7
+      }
+    },
+    {
+      "audio_url": "whisper.mp3",
+      "audio_position": [-37.25, 8.02, 8.71],
+      "falloff": {
+        "refDistance": 5,
+        "rolloffFactor": 10,
+        "maxDistance": 3,
+        "loop": false,
+        "volume": 1.4 
+      },
+      "triggerRadius": 2
+    }
+  ]
+}
+

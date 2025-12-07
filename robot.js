@@ -88,7 +88,7 @@ export async function initializeRobot(sparkScene, configFile = 'robot-config.jso
   }
   
   const loader = new FBXLoader();
-  const robotURL = await checkAssets('robot.fbx');
+  const robotURL = await assetUrlFn('robot.fbx');
   
   return new Promise((resolve, reject) => {
     loader.load(
@@ -163,7 +163,7 @@ export async function initializeRobot(sparkScene, configFile = 'robot-config.jso
         }
         
         // Add drone hum audio that follows the robot
-        checkAssets('droid-hum.mp3').then(async (droneAudioUrl) => {
+        assetUrlFn('droid-hum.mp3').then(async (droneAudioUrl) => {
           try {
             await createAttachedAudio(droneAudioUrl, robot, {
               refDistance: 2,

@@ -1,5 +1,3 @@
-import { AUDIO_CONIFG } from "./config.js";
-
 // Audio setup
 export let bgAudio = null;
 let audioEnabled = false;
@@ -39,14 +37,43 @@ function setupAudioToggleButton() {
   }
 }
 
-// Initialize audio with asset resolution
-export async function initializeBackgroundAudio(audioURL) {
-    if (audioURL) {
-        bgAudio = new Audio(audioURL);
-        bgAudio.loop = true;
-        bgAudio.preload = "auto";
-        bgAudio.volume = AUDIO_CONIFG.defaultVolume;
+/**
+ * Initialize background audio by loading configuration from audio-config.json
+ * @param {string} sceneName - Name of the scene
+ * @param {object} sceneConfig - Scene configuration object
+ * @param {function} checkSceneAssets - Asset resolver function
+ */
+export async function initializeBackgroundAudio(sceneName, sceneConfig, checkSceneAssets) {
+  // Load background audio config from audio-config.json
+  let BACKGROUND_AUDIO_CONFIG = { backgroundMusicFileName: null, volume: 0.2 };
+  
+  try {
+    const audioConfigUrl = await checkSceneAssets(sceneConfig.configFiles.audioConfig);
+    const response = await fetch(audioConfigUrl);
+    const audioConfig = await response.json();
+    
+    // Handle both old format (array) and new format (object with BACKGROUND_AUDIO_CONFIG)
+    if (audioConfig.BACKGROUND_AUDIO_CONFIG) {
+      BACKGROUND_AUDIO_CONFIG = audioConfig.BACKGROUND_AUDIO_CONFIG;
     }
+  } catch (error) {
+    console.warn("Failed to load background audio config, using defaults:", error);
+  }
+
+  // Initialize background audio. This is played at a constant volume throughout the scene
+  if (BACKGROUND_AUDIO_CONFIG.backgroundMusicFileName) {
+    const audioURL = await checkSceneAssets(BACKGROUND_AUDIO_CONFIG.backgroundMusicFileName);
+    console.log('Using background audio', BACKGROUND_AUDIO_CONFIG.backgroundMusicFileName);
+    bgAudio = new Audio(audioURL);
+    bgAudio.loop = true;
+    bgAudio.preload = "auto";
+    const volume = BACKGROUND_AUDIO_CONFIG.volume ?? 0.2;
+    bgAudio.volume = volume;
+    console.log('Background audio volume set to:', volume);
+  } else {
+    // No background audio file specified
+    bgAudio = null;
+  }
   
   // Setup audio toggle button after audio is initialized
   setupAudioToggleButton();

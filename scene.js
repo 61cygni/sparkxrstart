@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { NewSparkRenderer, SplatMesh, SparkControls, VRButton, XrHands } from "@sparkjsdev/spark";
-import { RENDER_CONFIG } from "./config.js";
 
 
 /**
@@ -75,10 +74,18 @@ async function fetchWithProgress(url, onProgress) {
  * @param {string} backgroundURL - URL to the SPZ file
  * @param {object} options - Options
  * @param {function} options.onProgress - Progress callback (progress, loadedBytes, totalBytes)
+ * @param {object} renderConfig - Render configuration
+ * @param {number} renderConfig.maxStdDev - Maximum standard deviation for splat rendering
+ * @param {number} renderConfig.lodSplatScale - LOD splat scale factor
  * @returns {Promise<SparkScene>}
  */
-export async function createSparkScene(backgroundURL, options = {}) {
+export async function createSparkScene(backgroundURL, options = {}, renderConfig = {}) {
   const { onProgress } = options;
+  const {
+    maxStdDev = Math.sqrt(5),
+    lodSplatScale = 2.0,
+  } = renderConfig;
+  
   const sparkScene = new SparkScene();
   
   // Renderer setup
@@ -96,8 +103,8 @@ export async function createSparkScene(backgroundURL, options = {}) {
   
   sparkScene.spark = new NewSparkRenderer({
     renderer: sparkScene.renderer,
-    maxStdDev: RENDER_CONFIG.maxStdDev,
-    lodSplatScale: RENDER_CONFIG.lodSplatScale,
+    maxStdDev: maxStdDev,
+    lodSplatScale: lodSplatScale,
   });
   sparkScene.scene.add(sparkScene.spark);
   sparkScene.localFrame.add(sparkScene.camera);
@@ -105,7 +112,7 @@ export async function createSparkScene(backgroundURL, options = {}) {
   // Load main scene with progress tracking
   console.log('splatURL', backgroundURL);
   
-  let splatOptions = { lod: true, nonLod: true };
+  let splatOptions = { lod: false, nonLod: true };
   
   if (onProgress) {
     // Fetch with progress tracking, then pass bytes to SplatMesh
@@ -135,7 +142,18 @@ export async function createSparkScene(backgroundURL, options = {}) {
   return sparkScene;
 }
 
-export function initializeVR(sparkScene, options = {}) {
+/**
+ * Initialize VR support for the scene
+ * @param {SparkScene} sparkScene - The spark scene
+ * @param {object} options - Options
+ * @param {object} renderConfig - Render configuration
+ * @param {number} renderConfig.xrFramebufferScaleFactor - XR framebuffer scale factor (default: 0.5)
+ */
+export function initializeVR(sparkScene, options = {}, renderConfig = {}) {
+  const {
+    xrFramebufferScaleFactor = 0.5,
+  } = renderConfig;
+  
   // WebXR setup
   const vrButton = VRButton.createButton(sparkScene.renderer, {
     optionalFeatures: ["hand-tracking"],
@@ -157,7 +175,7 @@ export function initializeVR(sparkScene, options = {}) {
   // Setup controls
   sparkScene.controls.fpsMovement.xr = sparkScene.renderer.xr;
   // reduces resolution. But you can't really tell with splats so this is a free performance boost.
-  sparkScene.renderer.xr.setFramebufferScaleFactor(RENDER_CONFIG.xrFramebufferScaleFactor);
+  sparkScene.renderer.xr.setFramebufferScaleFactor(xrFramebufferScaleFactor);
 }
 
 export function startAnimationLoop(sparkScene, animLoopHook) {

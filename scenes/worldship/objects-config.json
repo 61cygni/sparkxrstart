@@ -1,0 +1,15 @@
+[
+  {
+    "name": "soccerball",
+    "model": "Soccer Ball/Soccer Ball.fbx",
+    "position": [-1, 7, -6],
+    "scale": 0.02
+  },
+  {
+    "name": "beachball",
+    "model": "beach-ball/source/beach ball.fbx",
+    "position": [1, 7, -6],
+    "scale": 0.01
+  }
+]
+

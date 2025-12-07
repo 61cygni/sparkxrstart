@@ -212,6 +212,25 @@ export function jump() {
 }
 
 /**
+ * Initialize keyboard handler for jump action
+ * @param {SparkScene} sparkScene
+ * @param {object} sceneConfig - Scene configuration with flags
+ */
+export function initializeJumpKeyHandler(sparkScene, sceneConfig) {
+  if (!sceneConfig.flags.enablePhysics) {
+    return; // Skip if physics is not enabled
+  }
+
+  window.addEventListener('keydown', (event) => {
+    // Press Space to jump (when physics enabled)
+    if (event.code === 'Space' && isPhysicsEnabled()) {
+      event.preventDefault(); // Prevent page scroll
+      jump();
+    }
+  });
+}
+
+/**
  * Initialize character physics system
  * @param {SparkScene} sparkScene
  */
