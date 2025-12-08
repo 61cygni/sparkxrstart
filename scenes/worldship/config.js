@@ -44,6 +44,7 @@ export const SCENE_CONFIG = {
     lightingConfig: 'lighting-config.json',
     objectsConfig: 'objects-config.json',
     robotConfig: 'robot-config.json',
+    pathConfig: 'path-config.json',
   },
   
   // Scene rotation (in radians) - applied to splat scene and collision mesh

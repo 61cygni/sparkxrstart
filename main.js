@@ -1,5 +1,7 @@
 // Scene selection - change this to load a different scene
-const SCENE_NAME = 'worldship';
+
+const SCENE_NAME = 'cozyship';
+// const SCENE_NAME = 'worldship';
 
 import { createCheckSceneAssets } from "./assets-config.js";
 import { initializeBackgroundAudio, turnMusicOn } from "./audio.js";
@@ -15,6 +17,7 @@ import { initializeCollisions, updateCollisions, updateDynamicObjects, createCol
 import { initializeKickThrowSound, initializeObjectActionKeyHandlers } from "./object-actions.js";
 import { initializeThrowHands, updateThrowHands } from "./throw-hand.js";
 import { initializeCharacterPhysics, updateCharacterPhysics, initializeJumpKeyHandler } from "./character-physics.js";
+import { initializePath, updatePath } from "./path.js";
 
 // Load scene-specific config
 const sceneConfig = await import(`./scenes/${SCENE_NAME}/config.js`);
@@ -43,6 +46,11 @@ hideProgress();
 await initializeBackgroundAudio(SCENE_NAME, SCENE_CONFIG, checkSceneAssets);
 
 await initializeSpatialAudio(sparkScene, SCENE_CONFIG.configFiles.audioConfig, checkSceneAssets);
+
+// Initialize path system if path config exists
+if (SCENE_CONFIG.configFiles.pathConfig) {
+  await initializePath(sparkScene, SCENE_CONFIG.configFiles.pathConfig, checkSceneAssets);
+}
 
 // Initialize lighting if enabled
 if (SCENE_CONFIG.flags.enableLighting) {
@@ -161,5 +169,10 @@ startAnimationLoop(sparkScene, (sparkSceneIn, time) => {
   }
   
   checkProximityTriggers(sparkSceneIn.localFrame.position); // audio triggers
+  
+  // Update path waypoints (check proximity and animate)
+  if (SCENE_CONFIG.configFiles.pathConfig) {
+    updatePath(sparkSceneIn.localFrame.position, time);
+  }
 });
 

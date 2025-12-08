@@ -33,7 +33,7 @@ npm run build
 
 ```
 ├── index.html          # Main HTML entry point
-├── main.js             # Application entry point
+├── main.js             # Main file.
 ├── scene.js            # Scene creation and animation loop
 ├── audio.js            # Background audio management
 ├── spatial-audio.js    # 3D positional audio system
@@ -46,16 +46,26 @@ npm run build
 ├── hud.js              # HUD overlay display for debugging
 ├── progress.js         # Loading progress overlay
 ├── sdf-hand.js         # SDF hand tracking visualization
+├── path.js             # Path markers with SDF ground highlights and toggle UI
 ├── assets.js           # Asset URL resolution (local/CDN fallback)
 ├── config.js           # Configuration parameters
 ├── vite.config.js      # Vite configuration
 ├── netlify.toml        # Netlify deployment configuration
+├── scenes/             # Scene-specific configs (per scene)
+│   └── <scene-name>/
+│       ├── config.js           # Scene settings and flags
+│       ├── audio-config.json   # Spatial audio sources for the scene
+│       ├── lighting-config.json# Lighting setup for the scene
+│       ├── objects-config.json # Dynamic/static objects for the scene
+│       ├── robot-config.json   # Robot/waypoint config (optional)
+│       └── path-config.json    # Path waypoints & highlight offsets (optional)
 └── public/
-    └── assets/         # Local assets (checked first, falls back to CDN)
-        ├── audio-config.json       # Spatial audio source definitions
-        ├── lighting-config.json    # Lighting configuration
-        ├── objects-config.json     # Dynamic object definitions
-        ├── robot-config.json       # Robot waypoint navigation config
+    └── scenes/         # Scene-local assets served statically
+        └── <scene-name>/
+            ├── assets/          # Scene-local binaries/textures/audio
+            ├── *.mp3            # Scene audio
+            ├── *.glb / *.fbx    # Scene meshes
+            └── *.spz            # Scene splat files 
 ```
 
 ## Asset Loading
