@@ -130,7 +130,7 @@ if (SCENE_CONFIG.flags.enablePhysics) {
 initializeObjectActionKeyHandlers(sparkScene, SCENE_CONFIG);
 
 // with VR, we need to wait for a user gesture to start music.  Otherwise, start music immediately.
-if (!sparkScene.xrHands) {
+if (!sparkScene.xr) {
   await turnMusicOn();
 } 
 

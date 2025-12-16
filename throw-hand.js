@@ -39,11 +39,11 @@ export function initializeThrowHands(sparkScene) {
 
 /**
  * Get the pinch position (midpoint between thumb tip and index tip)
- * @param {object} hand - Hand joint data from xrHands
+ * @param {object} hand - Hand object from SparkXr (xr.left() or xr.right())
  * @returns {THREE.Vector3|null} - Pinch position or null if joints not available
  */
 function getPinchPosition(hand) {
-  if (!hand || !hand.t3 || !hand.i4) return null;
+  if (!hand?.valid() || !hand.t3?.position || !hand.i4?.position) return null;
   
   const thumbTip = hand.t3.position;
   const indexTip = hand.i4.position;
@@ -57,11 +57,11 @@ function getPinchPosition(hand) {
 
 /**
  * Check if hand is in pinch gesture
- * @param {object} hand - Hand joint data from xrHands
+ * @param {object} hand - Hand object from SparkXr (xr.left() or xr.right())
  * @returns {boolean} - True if pinching
  */
 function isPinching(hand) {
-  if (!hand || !hand.t3 || !hand.i4) return false;
+  if (!hand?.valid() || !hand.t3?.position || !hand.i4?.position) return false;
   
   const thumbTip = hand.t3.position;
   const indexTip = hand.i4.position;
@@ -167,7 +167,7 @@ function releaseObject(handName) {
  * @param {number} time - Current time in milliseconds
  */
 export function updateThrowHands(sparkScene, time) {
-  if (!sparkScene.renderer.xr.isPresenting || !sparkScene.xrHands) return;
+  if (!sparkScene.renderer.xr.isPresenting || !sparkScene.xr) return;
   
   const deltaTime = (time - lastTime) / 1000; // Convert to seconds
   lastTime = time;
@@ -175,12 +175,17 @@ export function updateThrowHands(sparkScene, time) {
   // Skip first frame (no valid deltaTime)
   if (deltaTime <= 0 || deltaTime > 0.5) return;
   
+  // Get hands from SparkXr
+  const hands = {
+    left: sparkScene.xr.left(),
+    right: sparkScene.xr.right()
+  };
+  
   // Process each hand
-  for (const handName of ['left', 'right']) {
-    const hand = sparkScene.xrHands.hands[handName];
+  for (const [handName, hand] of Object.entries(hands)) {
     const state = handStates[handName];
     
-    if (!hand) continue;
+    if (!hand?.valid()) continue;
     
     // Get current pinch position
     const pinchPos = getPinchPosition(hand);

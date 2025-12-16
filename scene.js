@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { NewSparkRenderer, SplatMesh, SparkControls, VRButton, XrHands } from "@sparkjsdev/spark";
+import { NewSparkRenderer, SplatMesh, SparkControls, SparkXr } from "@sparkjsdev/spark";
 
 
 /**
@@ -20,7 +20,7 @@ export class SparkScene {
     this.collisionMeshes = [];
     this.dynamicObjects = new Map();
     this.controls = null;
-    this.xrHands = null;
+    this.xr = null;
   }
 }
 
@@ -137,7 +137,10 @@ export async function createSparkScene(backgroundURL, options = {}, renderConfig
   }
 
   // Controls setup
-  sparkScene.controls = new SparkControls({ canvas: sparkScene.renderer.domElement });
+  sparkScene.controls = new SparkControls({
+    renderer: sparkScene.renderer,
+    canvas: sparkScene.renderer.domElement,
+  });
   
   return sparkScene;
 }
@@ -154,26 +157,29 @@ export function initializeVR(sparkScene, options = {}, renderConfig = {}) {
     xrFramebufferScaleFactor = 0.5,
   } = renderConfig;
   
-  // WebXR setup
-  const vrButton = VRButton.createButton(sparkScene.renderer, {
-    optionalFeatures: ["hand-tracking"],
+  // Initialize SparkXr - handles VR button and XR session management
+  sparkScene.xr = new SparkXr({
+    renderer: sparkScene.renderer,
+    onMouseLeaveOpacity: 0.5,
+    onReady: async (supported) => {
+      console.log(`SparkXr ready: VR ${supported ? "supported" : "not supported"}`);
+    },
+    onEnterXr: () => {
+      console.log("Enter XR");
+    },
+    onExitXr: () => {
+      console.log("Exit XR");
+    },
+    enableHands: true,
+    controllers: {},
   });
-  
-  if (vrButton) {
-    document.body.appendChild(vrButton);
-    
-    const xrHands = new XrHands();
-    sparkScene.xrHands = xrHands;
-    const handMesh = xrHands.makeGhostMesh();
-    handMesh.editable = false;
-    sparkScene.localFrame.add(handMesh);
-  }
 
   // Redo controls to include VR 
-  sparkScene.controls = new SparkControls({ canvas: sparkScene.renderer.domElement });
+  sparkScene.controls = new SparkControls({
+    renderer: sparkScene.renderer,
+    canvas: sparkScene.renderer.domElement,
+  });
 
-  // Setup controls
-  sparkScene.controls.fpsMovement.xr = sparkScene.renderer.xr;
   // reduces resolution. But you can't really tell with splats so this is a free performance boost.
   sparkScene.renderer.xr.setFramebufferScaleFactor(xrFramebufferScaleFactor);
 }
@@ -192,11 +198,16 @@ export function startAnimationLoop(sparkScene, animLoopHook) {
     // Call HUD update callback if provided
     animLoopHook(sparkScene, time);
 
+    // Update XR controllers (must be before controls.update)
+    if (sparkScene.xr?.updateControllers) {
+      sparkScene.xr.updateControllers(sparkScene.camera);
+    }
 
     sparkScene.controls.update(sparkScene.localFrame);
-    // Update WebXR hands if active
-    if (sparkScene.renderer.xr.isPresenting && sparkScene.xrHands) {
-        sparkScene.xrHands.update({ xr: sparkScene.renderer.xr, xrFrame });
+
+    // Update XR hands if active
+    if (sparkScene.xr?.updateHands && sparkScene.renderer.xr.isPresenting) {
+      sparkScene.xr.updateHands({ xrFrame });
     }
 
     sparkScene.renderer.render(sparkScene.scene, sparkScene.camera);

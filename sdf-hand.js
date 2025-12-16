@@ -18,13 +18,21 @@ export function initializeSDFHands(sparkScene) {
 // Update SDF hand tracking each frame
 export function updateSDFHands(sparkScene, time) {
   if (!splatEdit) return;
-  if (!sparkScene.renderer.xr.isPresenting || !sparkScene.xrHands) return;
+  if (!sparkScene.renderer.xr.isPresenting || !sparkScene.xr) return;
+
+  // Get hands from SparkXr
+  const hands = {
+    left: sparkScene.xr.left(),
+    right: sparkScene.xr.right()
+  };
 
   // Create interactor SDFs for each hand tip
-  for (const hand of ["left", "right"]) {
+  for (const [handName, hand] of Object.entries(hands)) {
+    const handValid = hand?.valid();
+    
     for (const [index, tip] of ["t3", "i4", "m4", "r4", "p4"].entries()) {
       // Make a sphere SDF for each hand tip with different colors
-      const key = `${hand}-${tip}`;
+      const key = `${handName}-${tip}`;
       if (!handSdfs.has(key)) {
         const sdf = new SplatEditSdf({
           type: SplatEditSdfType.SPHERE,
@@ -47,9 +55,9 @@ export function updateSDFHands(sparkScene, time) {
         0.01 * Math.sin(time * 0.009 + index * 3),
       );
 
-      if (sparkScene.xrHands.hands[hand] && sparkScene.xrHands.hands[hand][tip]) {
+      if (handValid && hand[tip]?.position) {
         // Make the SDF follow the hand tips
-        sdf.position.copy(sparkScene.xrHands.hands[hand][tip].position);
+        sdf.position.copy(hand[tip].position);
         splatEdit.add(sdf);
       } else {
         // Remove the SDF when the hand is not detected
